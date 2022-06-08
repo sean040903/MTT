@@ -1,0 +1,170 @@
+C:\Users\sean0\PycharmProjects\pythonProject>kernprof -l -v MTTv12.2.beta-line.py
+1: 100%|######################################################################################################################################################| 3/3 [00:00<00:00,  4.47it/s]
+2: 100%|####################################################################################################################################################| 13/13 [00:03<00:00,  3.56it/s]
+Wrote profile results to MTTv12.2.beta-line.py.lprof
+Timer unit: 1e-06 s
+
+Total time: 2.67623 s
+File: MTTv12.2.beta-line.py
+Function: CAiP at line 59
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    59                                           @profile
+    60                                           def CAiP(AiP1, ttype4, selp1, LP1, cn7):  # TType을 변경하기 전에 진행을 해야 한다.
+    61      4436      30369.4      6.8      1.1      AiP2 = np.copy(AiP1)
+    62      4436      98547.2     22.2      3.7      ln7 = PIL(ICL, np.array([cn7]))[0]
+    63      4436     728549.8    164.2     27.2      ttype5 = CTType(selp1, ttype4)
+    64      4436      80492.1     18.1      3.0      Dd = np.flatnonzero((ttype5 - ttype4)[weekly:-1]) + weekly
+    65      5272      10354.7      2.0      0.4      for k in Dd:
+    66       836       4116.5      4.9      0.2          j = CAD[SDPI == k][0]
+    67       836       2952.6      3.5      0.1          i = DCD[SDPI == k][0]
+    68       836       9450.3     11.3      0.4          while i in CAD and ttype4[SDPI[CAD == i]] == 0:
+    69                                                       i = DCD[CAD == i][0]
+    70       836      12243.3     14.6      0.5          AiP2[:, IPD[j]:FPD[j] + 1] = np.copy(AiP2[:, IPD[i]:FPD[i] + 1])
+    71      4436      58046.5     13.1      2.2      Ck = ttype5[np.flatnonzero((ttype5 - ttype4)[:weekly])]
+    72      7100      10997.3      1.5      0.4      for i in Ck:
+    73      2664      43275.1     16.2      1.6          AiP2[NcN, i:i + 2] *= -1
+    74      8872     241245.6     27.2      9.0      for d1 in date(selp1):
+    75      4436      17801.1      4.0      0.7          AiP2[cn7, IPD[d1]:FPD[d1] + 1] = 0
+    76      4436      57298.6     12.9      2.1      GinC = np.flatnonzero(GC[:, cn7])
+    77      4436     438586.5     98.9     16.4      AiP2[np.intersect1d(np.flatnonzero(np.sum(GC[GinC], axis=0)), NcN)][:, selp1] = 0
+    78      4436     497163.1    112.1     18.6      AiP2[np.intersect1d(np.flatnonzero(np.sum(GC[GinC], axis=0)), NcN)] *= (np.sum(GP[GinC], axis=0) == 0)
+    79      4436     330313.0     74.5     12.3      AiP2[np.intersect1d(np.arange(ICL[ln7], FCL[ln7] + 1), NcN)] *= (LP1[ln7] < MLP[ln7])
+    80      4436       4424.1      1.0      0.2      return AiP2
+
+Total time: 0.385495 s
+File: MTTv12.2.beta-line.py
+Function: APTType at line 83
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    83                                           @profile
+    84                                           def APTType(AiP3, ttype6, LP2, cn9, num=0):
+    85      5308       8449.0      1.6      2.2      kc4 = KC[cn9]
+    86      5308       4147.4      0.8      1.1      if num > 0:
+    87      5304       4364.8      0.8      1.1          kc4 = 5 - num
+    88      5308       3754.8      0.7      1.0      if kc4 == 4:
+    89      3400     272884.6     80.3     70.8          apve = VEP[np.intersect1d(np.flatnonzero(AiP3[cn9, VEP] == 1), NZBF(ttype6[-1]))]
+    90      3400      22783.9      6.7      5.9          apae = AEP[AiP3[cn9, AEP] == 1]
+    91      3400      20793.4      6.1      5.4          return np.concatenate((apve, apae)).reshape(-1, 1)
+    92      1908       1401.7      0.7      0.4      elif kc4 == 3:
+    93      1908      16877.8      8.8      4.4          ape = EP[AiP3[cn9, EP] == 1].reshape(1, -1)
+    94      1908      30037.2     15.7      7.8          return np.append(ape, ape + 1, axis=0).T
+    95                                               elif kc4 == 2:
+    96                                                   ap2 = np.empty((0, 2), int)
+    97                                                   AP1 = APTType(AiP3, ttype6, LP2, cn9, num=1)
+    98                                                   for ap1 in AP1:
+    99                                                       AiP4 = CAiP(AiP3, ttype6, LP2, ap1, cn9)
+   100                                                       AP2 = APTType(AiP4, CTType(ap1, ttype6), LP2, cn9, num=1)
+   101                                                       AP2 = AP2[PIL(IPD, AP2[:, 0]) > date(ap1)]
+   102                                                       for ap0 in AP2:
+   103                                                           ap2 = np.append(ap2, [np.append(ap1, ap0)], axis=0)
+   104                                                   return ap2
+   105                                               elif kc4 == 1:
+   106                                                   ap3 = np.empty((0, 3), int)
+   107                                                   AP1 = APTType(AiP3, ttype6, LP2, cn9, num=2)
+   108                                                   for ap1 in AP1:
+   109                                                       AiP4 = CAiP(AiP3, ttype6, ap1, LP2, cn9)
+   110                                                       AP2 = APTType(AiP4, CTType(ap1, ttype6), LP2, cn9, num=1)
+   111                                                       AP2 = AP2[PIL(IPD, AP2[:, 0]) != date(ap1)]
+   112                                                       for ap0 in AP2:
+   113                                                           ap3 = np.append(ap3, [np.append(ap1, ap0)], axis=0)
+   114                                                   return ap3
+   115                                               else:
+   116                                                   ap4 = np.empty((0, 4), int)
+   117                                                   AP1 = APTType(AiP3, ttype6, LP2, cn9, num=2)
+   118                                                   for ap1 in AP1:
+   119                                                       AiP4 = CAiP(AiP3, ttype6, ap1, LP2, cn9)
+   120                                                       AP2 = APTType(AiP4, CTType(ap1, ttype6), LP2, cn9, num=2)
+   121                                                       AP2 = AP2[PIL(IPD, AP2[:, 0]) > date(ap1)]
+   122                                                       for ap0 in AP2:
+   123                                                           ap4 = np.append(ap4, [np.append(ap1, ap0)], axis=0)
+   124                                                   return ap4
+
+Total time: 4.47429 s
+File: MTTv12.2.beta-line.py
+Function: LPTType at line 127
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+   127                                           @profile
+   128                                           def LPTType(AiP3, ttype6, LP3, cn9, num=0):
+   129      1297       1488.1      1.1      0.0      kc4 = KC[cn9]
+   130      1297        875.2      0.7      0.0      if num > 0:
+   131                                                   kc4 = 5 - num
+   132      1297       3119.7      2.4      0.1      if kc4 == 4:
+   133       306      28334.5     92.6      0.6          return np.sum(AiP3[cn9, AEP] == 1) + len(np.intersect1d(np.flatnonzero(AiP3[cn9, VEP] == 1), NZBF(ttype6[-1])))
+   134       991        708.9      0.7      0.0      elif kc4 == 3:
+   135       107       1969.8     18.4      0.0          return np.sum(AiP3[cn9, EP] == 1)
+   136       884        656.8      0.7      0.0      elif kc4 == 2:
+   137                                                   lp2 = 0
+   138                                                   AP1 = APTType(AiP3, ttype6, LP3, cn9, num=1)
+   139                                                   for ap1 in AP1:
+   140                                                       AP2 = APTType(CAiP(AiP3, ttype6, ap1, LP3, cn9), CTType(ap1, ttype6), LP3, cn9, num=1)
+   141                                                       AP2 = AP2[PIL(IPD, AP2[:, 0]) > date(ap1)]
+   142                                                       lp2 += len(AP2)
+   143                                                   return lp2
+   144       884       1345.7      1.5      0.0      elif kc4 == 1:
+   145       680        345.0      0.5      0.0          lp3 = 0
+   146       680      27045.9     39.8      0.6          AP1 = APTType(AiP3, ttype6, LP3, cn9, num=2)
+   147      4080       4775.0      1.2      0.1          for ap1 in AP1:
+   148      3400    3042855.1    895.0     68.0              AP2 = APTType(CAiP(AiP3, ttype6, ap1, LP3, cn9), CTType(ap1, ttype6), LP3, cn9, num=1)
+   149      3400     361743.6    106.4      8.1              AP2 = AP2[PIL(IPD, AP2[:, 0]) != date(ap1)]
+   150      3400       5421.5      1.6      0.1              lp3 += len(AP2)
+   151       680        377.4      0.6      0.0          return lp3
+   152                                               else:
+   153       204        105.8      0.5      0.0          lp4 = 0
+   154       204       8721.5     42.8      0.2          AP1 = APTType(AiP3, ttype6, LP3, cn9, num=2)
+   155      1224       1443.7      1.2      0.0          for ap1 in AP1:
+   156      1020     875449.5    858.3     19.6              AP2 = APTType(CAiP(AiP3, ttype6, ap1, LP3, cn9), CTType(ap1, ttype6), LP3, cn9, num=2)
+   157      1020     105704.1    103.6      2.4              AP2 = AP2[PIL(IPD, AP2[:, 0]) > date(ap1)]
+   158      1020       1687.6      1.7      0.0              lp4 += len(AP2)
+   159       204        115.1      0.6      0.0          return lp4
+
+Total time: 1.40778 s
+File: MTTv12.2.beta-line.py
+Function: CTType at line 183
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+   183                                           @profile
+   184                                           def CTType(selp1, ttype4):
+   185      8872     449263.4     50.6     31.9      dates = date(selp1)
+   186      8872      12285.7      1.4      0.9      kc4 = 6 - len(selp1) - len(dates)
+   187      8872      43448.2      4.9      3.1      arr1 = np.copy(ttype4)
+   188     17744      25938.7      1.5      1.8      for i in dates:
+   189      8872     239277.6     27.0     17.0          if ttype4[i] < DMEP[i] and EP[PIL(EP, np.array([ttype4[i]]))] in selp1:
+   190      5328      14704.6      2.8      1.0              arr1[i] += 2
+   191     12524     479505.3     38.3     34.1      for i in np.intersect1d(dates,DCD):
+   192      3652     119738.8     32.8      8.5          arr1[weekly + np.argwhere(DCD == i)] = 1
+   193      8872       7390.3      0.8      0.5      if kc4 == 1:
+   194                                                   if selp1[2] in EP or selp1[2] in VEP:
+   195                                                       arr1[-1] = BFN(np.union1d(NZBF(ttype4[-1]), PIL(EP, np.array([selp1[2]]))))
+   196      8872       5911.2      0.7      0.4      elif kc4 == 2 or kc4 == 4:
+   197                                                   arr1[-1] = BFN(np.union1d(NZBF(ttype4[-1]), PIL(EP, np.setdiff1d(selp1,NEP))))
+   198      8872       5951.9      0.7      0.4      if kc4 == 0 or kc4 == 2:
+   199                                                   for i in SDPD:
+   200                                                       if np.array_equiv(dates, i):
+   201                                                           i0 = np.where(DCD == dates[0])[0] + weekly
+   202                                                           if ttype4[i0] == 0:
+   203                                                               if selp1[0] + np.sum(DPN[dates[0]:dates[1]]) == selp1[2 - kc4 // 2]:
+   204                                                                   arr1[i0] = 0
+   205      8872       4359.5      0.5      0.3      return arr1
+
+Total time: 0.0192842 s
+File: MTTv12.2.beta-line.py
+Function: NZBF at line 281
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+   281                                           @profile
+   282                                           def NZBF(n):
+   283      3706      10573.3      2.9     54.8      nzbf = np.empty(shape=(0), dtype=np.int64)
+   284      3706       2217.8      0.6     11.5      n1 = 0
+   285      3706       4870.0      1.3     25.3      while n > 0:
+   286                                                   if n % 2 == 1:
+   287                                                       nzbf = np.append(nzbf, n1)
+   288                                                   n = n // 2
+   289                                                   n1 += 1
+   290      3706       1623.1      0.4      8.4      return nzbf

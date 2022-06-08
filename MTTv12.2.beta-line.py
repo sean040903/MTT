@@ -9,7 +9,6 @@ import math
 import matplotlib.pyplot as plt
 from collections import Counter
 from tqdm import tqdm, trange
-from numba import jit, int32
 
 onegrade = np.array([0, 1, 7, 8, 11, 12, 13, 34, 57, 59, 61])
 # 엑셀에 담긴 데이터를 가져오는 코드를 사용하기 위해 엑셀 데이터파일의 이름을 받고 월드입력변수를 받는 코드#
@@ -56,31 +55,33 @@ for i in range(len(datenames)):
 
 
 # 변경 함수
-@profile
-def CAiP(AiP1, ttype4, selp1, LP1, cn7):  # TType을 변경하기 전에 진행을 해야 한다.
+#@profile
+def CAiP(AiP1, ttype4, ttype5, selp1, LP1, cn7, Ncn7):
     AiP2 = np.copy(AiP1)
     ln7 = PIL(ICL, np.array([cn7]))[0]
-    ttype5 = CTType(selp1, ttype4)
     Dd = np.flatnonzero((ttype5 - ttype4)[weekly:-1]) + weekly
     for k in Dd:
         j = CAD[SDPI == k][0]
         i = DCD[SDPI == k][0]
         while i in CAD and ttype4[SDPI[CAD == i]] == 0:
             i = DCD[CAD == i][0]
-        AiP2[:, IPD[j]:FPD[j] + 1] = np.copy(AiP2[:, IPD[i]:FPD[i] + 1])
+        for num in Ncn7:
+            AiP2[num,IPD[j]:FPD[j] + 1] = np.copy(AiP2[num,IPD[i]:FPD[i] + 1])
     Ck = ttype5[np.flatnonzero((ttype5 - ttype4)[:weekly])]
-    for i in Ck:
-        AiP2[NcN, i:i + 2] *= -1
+    AiP2[Ncn7][:, np.concatenate((Ck, Ck + 1))] *= -1
     for d1 in date(selp1):
         AiP2[cn7, IPD[d1]:FPD[d1] + 1] = 0
     GinC = np.flatnonzero(GC[:, cn7])
-    AiP2[np.intersect1d(np.flatnonzero(np.sum(GC[GinC], axis=0)), NcN)][:, selp1] = 0
-    AiP2[np.intersect1d(np.flatnonzero(np.sum(GC[GinC], axis=0)), NcN)] *= (np.sum(GP[GinC], axis=0) == 0)
-    AiP2[np.intersect1d(np.arange(ICL[ln7], FCL[ln7] + 1), NcN)] *= (LP1[ln7] < MLP[ln7])
+    AiP2[np.intersect1d(np.flatnonzero(np.sum(GC[GinC], axis=0)), Ncn7)][:, selp1] = 0
+    AiP2[np.intersect1d(np.flatnonzero(np.sum(GC[GinC], axis=0)), Ncn7)] *= (np.sum(GP[GinC], axis=0) == 0)
+    AiP2[np.intersect1d(np.arange(ICL[ln7], FCL[ln7] + 1), Ncn7)] *= (LP1[ln7] < MLP[ln7])
+    if cn7 not in Ncn7:
+        AiP2[cn7] = 0
+        AiP2[cn7, selp1] = 1
     return AiP2
 
 
-@profile
+#@profile
 def APTType(AiP3, ttype6, LP2, cn9, num=0):
     kc4 = KC[cn9]
     if num > 0:
@@ -92,39 +93,23 @@ def APTType(AiP3, ttype6, LP2, cn9, num=0):
     elif kc4 == 3:
         ape = EP[AiP3[cn9, EP] == 1].reshape(1, -1)
         return np.append(ape, ape + 1, axis=0).T
-    elif kc4 == 2:
-        ap2 = np.empty((0, 2), int)
-        AP1 = APTType(AiP3, ttype6, LP2, cn9, num=1)
-        for ap1 in AP1:
-            AiP4 = CAiP(AiP3, ttype6, LP2, ap1, cn9)
-            AP2 = APTType(AiP4, CTType(ap1, ttype6), LP2, cn9, num=1)
-            AP2 = AP2[PIL(IPD, AP2[:, 0]) > date(ap1)]
-            for ap0 in AP2:
-                ap2 = np.append(ap2, [np.append(ap1, ap0)], axis=0)
-        return ap2
-    elif kc4 == 1:
-        ap3 = np.empty((0, 3), int)
-        AP1 = APTType(AiP3, ttype6, LP2, cn9, num=2)
-        for ap1 in AP1:
-            AiP4 = CAiP(AiP3, ttype6, ap1, LP2, cn9)
-            AP2 = APTType(AiP4, CTType(ap1, ttype6), LP2, cn9, num=1)
-            AP2 = AP2[PIL(IPD, AP2[:, 0]) != date(ap1)]
-            for ap0 in AP2:
-                ap3 = np.append(ap3, [np.append(ap1, ap0)], axis=0)
-        return ap3
     else:
-        ap4 = np.empty((0, 4), int)
-        AP1 = APTType(AiP3, ttype6, LP2, cn9, num=2)
+        ap = np.empty((0, 4-kc4), int)
+        AP1 = APTType(AiP3, ttype6, LP2, cn9, num=1 + (kc4 < 2))
         for ap1 in AP1:
-            AiP4 = CAiP(AiP3, ttype6, ap1, LP2, cn9)
-            AP2 = APTType(AiP4, CTType(ap1, ttype6), LP2, cn9, num=2)
-            AP2 = AP2[PIL(IPD, AP2[:, 0]) > date(ap1)]
+            ttype7 = CTType(ap1, ttype6)
+            AiP4 = CAiP(AiP3, ttype6, ttype7, LP2, ap1, cn9, np.array([cn9]))
+            AP2 = APTType(AiP4, ttype7, LP2, cn9, num=1 + (kc4 < 1))
+            if kc4 == 1:
+                AP2 = AP2[PIL(IPD, AP2[:, 0]) != date(ap1)]
+            else:
+                AP2 = AP2[PIL(IPD, AP2[:, 0]) > date(ap1)]
             for ap0 in AP2:
-                ap4 = np.append(ap4, [np.append(ap1, ap0)], axis=0)
-        return ap4
+                ap = np.append(ap, [np.append(ap1, ap0)], axis=0)
+        return ap
 
 
-@profile
+#@profile
 def LPTType(AiP3, ttype6, LP3, cn9, num=0):
     kc4 = KC[cn9]
     if num > 0:
@@ -133,30 +118,18 @@ def LPTType(AiP3, ttype6, LP3, cn9, num=0):
         return np.sum(AiP3[cn9, AEP] == 1) + len(np.intersect1d(np.flatnonzero(AiP3[cn9, VEP] == 1), NZBF(ttype6[-1])))
     elif kc4 == 3:
         return np.sum(AiP3[cn9, EP] == 1)
-    elif kc4 == 2:
+    else:
         lp2 = 0
-        AP1 = APTType(AiP3, ttype6, LP3, cn9, num=1)
+        AP1 = APTType(AiP3, ttype6, LP3, cn9, num=1 + (kc4 < 2))
         for ap1 in AP1:
-            AP2 = APTType(CAiP(AiP3, ttype6, ap1, LP3, cn9), CTType(ap1, ttype6), LP3, cn9, num=1)
-            AP2 = AP2[PIL(IPD, AP2[:, 0]) > date(ap1)]
+            ttype7 = CTType(ap1, ttype6)
+            AP2 = APTType(CAiP(AiP3, ttype6, ttype7, ap1, LP3, cn9, np.array([cn9])), ttype7, LP3, cn9, num=1 + (kc4 < 1))
+            if kc4 == 1:
+                AP2 = AP2[PIL(IPD, AP2[:, 0]) != date(ap1)]
+            else:
+                AP2 = AP2[PIL(IPD, AP2[:, 0]) > date(ap1)]
             lp2 += len(AP2)
         return lp2
-    elif kc4 == 1:
-        lp3 = 0
-        AP1 = APTType(AiP3, ttype6, LP3, cn9, num=2)
-        for ap1 in AP1:
-            AP2 = APTType(CAiP(AiP3, ttype6, ap1, LP3, cn9), CTType(ap1, ttype6), LP3, cn9, num=1)
-            AP2 = AP2[PIL(IPD, AP2[:, 0]) != date(ap1)]
-            lp3 += len(AP2)
-        return lp3
-    else:
-        lp4 = 0
-        AP1 = APTType(AiP3, ttype6, LP3, cn9, num=2)
-        for ap1 in AP1:
-            AP2 = APTType(CAiP(AiP3, ttype6, ap1, LP3, cn9), CTType(ap1, ttype6), LP3, cn9, num=2)
-            AP2 = AP2[PIL(IPD, AP2[:, 0]) > date(ap1)]
-            lp4 += len(AP2)
-        return lp4
 
 
 # 행렬-원소 선택 함수들#
@@ -180,21 +153,20 @@ def date(ip):
     return np.unique(PIL(IPD, ip))
 
 
-@profile
+#@profile
 def CTType(selp1, ttype4):
     dates = date(selp1)
     kc4 = 6 - len(selp1) - len(dates)
     arr1 = np.copy(ttype4)
     for i in dates:
-        if ttype4[i] < DMEP[i] and EP[PIL(EP, np.array([ttype4[i]]))] in selp1:
+        if ttype4[i] < DMEP[i] and ttype4[i] in selp1:
             arr1[i] += 2
-    for i in np.intersect1d(dates,DCD):
-        arr1[weekly + np.argwhere(DCD == i)] = 1
+    arr1[weekly + np.flatnonzero(np.in1d(DCD, dates))] = 1
     if kc4 == 1:
         if selp1[2] in EP or selp1[2] in VEP:
             arr1[-1] = BFN(np.union1d(NZBF(ttype4[-1]), PIL(EP, np.array([selp1[2]]))))
     elif kc4 == 2 or kc4 == 4:
-        arr1[-1] = BFN(np.union1d(NZBF(ttype4[-1]), PIL(EP, np.setdiff1d(selp1,NEP))))
+        arr1[-1] = BFN(np.union1d(NZBF(ttype4[-1]), PIL(EP, np.setdiff1d(selp1, NEP))))
     if kc4 == 0 or kc4 == 2:
         for i in SDPD:
             if np.array_equiv(dates, i):
@@ -278,7 +250,6 @@ def plusing(arr, xind, yind, num):
 
 
 # 소수,진법 변환 관련 함수들#
-@profile
 def NZBF(n):
     nzbf = np.empty(shape=(0), dtype=np.int64)
     n1 = 0
@@ -291,7 +262,7 @@ def NZBF(n):
 
 
 def BFN(arr):
-    return 2**(len(EP) - arr - 1)
+    return np.sum(2 ** (len(EP) - arr - 1))
 
 
 # 교시교환 관련 함수들#
@@ -619,16 +590,6 @@ back = 0
 newface = 0
 fastsend = 0
 
-cN = -1
-Found = 0
-pN = 0
-SbD = np.zeros((s, weekly), int)
-RSbD = np.empty((0, s, weekly), int)
-CP = np.array([], str)
-AiP = np.copy(fAiP).reshape(1, c, wpn)
-RAiP = np.empty((0, c, wpn), int)
-maxcN = -1
-RcN = np.array([], int)
 gRcN = np.array([], int)
 fig = plt.figure()
 NcN = np.arange(c)
@@ -657,10 +618,8 @@ while dead == 0:
         distinguished = 0
         old = 0
         RE = np.array([], int)
-        SuCP = np.zeros((1, c, wpn), int)
-        maxcN = -1
         figinum = 0
-        SuNcN = np.arange(c).reshape(1,-1)
+        SuNcN = np.arange(c).reshape(1, -1)
         SuRcN = np.empty((1, 0), int)
         SuLP = np.zeros((1, l, wpn), int)
         SuGP = np.zeros((1, g, wpn), int)
@@ -673,29 +632,78 @@ while dead == 0:
             fLlcN = np.append(fLlcN, LPTType(SuAiP[0], SuTType[0], SuLP[0], i))
         SuLlcN = np.array([fLlcN]).reshape(1, -1)
         while out == 0:
-            if len(SuRcN.T) > 0:
-                out = 1
-                dead = 1
-            delpass = np.array([], int)
+            if len(SuNcN.T) == 0:
+                for indexs in range(len(SuAiP)):
+                    CP = SuAiP[indexs]
+                    RcN = SuRcN[indexs]
+                    ScT = np.ones((s, wpn), int) * c
+                    SiT = np.ones((s, wpn), int) * l
+                    for c1 in range(c):
+                        c2 = RcN[c1]
+                        order = np.argwhere(RcN == c2)
+                        l1 = PIL(ICL, np.array([c2]))[0]
+                        carray = np.flatnonzero(SC[:, c2])
+                        plusing(ScT, carray, np.flatnonzero(CP[c2]), c2 - c)
+                        for i in carray:
+                            for j in np.flatnonzero(CP[c2]):
+                                SiT[i][j] = Simp[i][l1]
+                    ScT = ScT[:, LWP(ScT)]
+                    SiT = SiT[:, LWP(ScT)]
+                    for d2 in range(weekly):
+                        if DPN[d2] > 3:
+                            p4 = IPD[d2]
+                            if np.sum(SiT[p4:p4 + 2]) < np.sum(SiT[p4 + 2:p4 + 4]):
+                                ScT = swr(ScT, p4, 4)
+                            if DPN[d2] == 6 and np.sum(SiT[p4 + 4]) < np.sum(SiT[p4 + 5]):
+                                ScT = swr(ScT, p4 + 4, 2)
+                    qdsds = np.array([], int)
+                    for i in range(nds):
+                        basic = np.arange(wpn)
+                        basic1 = np.arange(wpn)
+                        for j in range(weekly):
+                            np.put(basic, np.arange(DPN[j]) + IPD[j], basic1[IPD[ADS[j]]:IPD[ADS[j]] + DPN[j]])
+                        ScT1 = ScT[:, basic]
+                        qdsd = 0
+                        for cn in range(ICK[3]):
+                            b = np.transpose(np.nonzero(ScT1 == cn))[:, 1]
+                            kind = PIL(ICK, np.array([cn]))[0]
+                            for i in range(s):
+                                qdsd += PIL(IPD, np.array([b[(4 - kind) * i + (3 - kind)]]))[0] - PIL(IPD, np.array([b[(4 - kind) * i]]))[0]
+                        qdsds = np.append(qdsds, qdsd)
+                    BSP = ADS[np.argmin(qdsds)]
+                    Timechange = np.arange(wpn)
+                    basetime = np.arange(wpn)
+                    for j in range(weekly):
+                        np.put(Timechange, np.arange(DPN[j]) + IPD[j], basetime[IPD[BSP[j]]:IPD[BSP[j]] + DPN[j]])
+                    ScT = ScT[:, Timechange]
+                    tdw = 0
+                    sdw = np.array([])
+                    for sctd in ScT:
+                        for t1 in DP:
+                            if np.all(sctd[t1 - 1, t1] < c):
+                                tdw += DI[PIL(ICL, np.array([sctd[t1 - 1, t1]]))[0]][PIL(ICL, np.array([sctd[t1 - 1, t1]]))[1]]
+                                sdw = np.append(sdw, tdw - sdw[-1])
+                    workbookname = str(tdw) + '가 총 이동거리인 시간표'
+                    makingsheetdone(ScT, workbookname, StS, sdw)
+            delpath = np.array([], int)
             for i in range(len(SuLlcN)):
                 if 0 in SuLlcN[i]:
-                    for j in NcN[SuLlcN[i] == 0]:
-                        RE = np.unique(np.append(RE, s * np.flatnonzero(GC[:, cN] * GC[:, j]) + cN))
-                    delpass = np.append(delpass, i)
-            SuTType = np.delete(SuTType, delpass, axis=0)
-            SuAiP = np.delete(SuAiP, delpass, axis=0)
-            SuLP = np.delete(SuLP, delpass, axis=0)
-            SuLlcN = np.delete(SuLlcN, delpass, axis=0)
-            SuCP = np.delete(SuCP, delpass, axis=0)
-            SuNcN = np.delete(SuNcN, delpass, axis=0)
-            SuRcN = np.delete(SuRcN, delpass, axis=0)
-            SucN = np.delete(SucN, delpass, axis=0)
+                    for j in SuNcN[i, (SuLlcN[i] == 0)]:
+                        RE = np.unique(np.append(RE, s * np.flatnonzero(GC[:, i] * GC[:, j]) + i))
+                    delpath = np.append(delpath, i)
+            SuTType = np.delete(SuTType, delpath, axis=0)
+            SuAiP = np.delete(SuAiP, delpath, axis=0)
+            SuLP = np.delete(SuLP, delpath, axis=0)
+            SuLlcN = np.delete(SuLlcN, delpath, axis=0)
+            SuNcN = np.delete(SuNcN, delpath, axis=0)
+            SuRcN = np.delete(SuRcN, delpath, axis=0)
+            SucN = np.delete(SucN, delpath, axis=0)
             if len(SuLlcN) > 0:
                 for i in range(len(SuLlcN)):
                     SuNcN[i] = SuNcN[i, np.argsort(SuLlcN[i])]
                     SuLlcN[i] = SuLlcN[i, np.argsort(SuLlcN[i])]
                 SucN = SuNcN[:, 0]
-                SuRcN = np.append(SuRcN, SucN.reshape(-1,1), axis=1)
+                SuRcN = np.append(SuRcN, SucN.reshape(-1, 1), axis=1)
                 SuNcN = np.delete(SuNcN, 0, axis=1)
                 Renum = np.copy(SuLlcN[:, 0])
                 SuLlcN = np.delete(SuLlcN, 0, axis=1)
@@ -703,25 +711,80 @@ while dead == 0:
                 IAD = np.array([0], int)
                 for i in range(len(SuTType)):
                     GP = SuGP[i]
-                    IAD = np.append(IAD, np.arange(1, Renum[i]+1) * (5 - KC[SucN[i]] - (KC[SucN[i]] < 3)) + len(APcN1d))
+                    IAD = np.append(IAD, np.arange(1, Renum[i] + 1) * (5 - KC[SucN[i]] - (KC[SucN[i]] < 3)) + len(APcN1d))
                     APcN1d = np.append(APcN1d, APTType(SuAiP[i], SuTType[i], SuLP[i], SucN[i]).reshape(-1))
                 SuAiP = np.repeat(SuAiP, Renum, axis=0)
                 SuTType = np.repeat(SuTType, Renum, axis=0)
+                SuTTypep = np.copy(SuTType)
                 SuLP = np.repeat(SuLP, Renum, axis=0)
                 SuGP = np.repeat(SuGP, Renum, axis=0)
                 SuLlcN = np.repeat(SuLlcN, Renum, axis=0)
-                SuCP = np.repeat(SuCP, Renum, axis=0)
                 SuNcN = np.repeat(SuNcN, Renum, axis=0)
                 SuRcN = np.repeat(SuRcN, Renum, axis=0)
                 SucN = np.repeat(SucN, Renum, axis=0)
                 SulN = PIL(ICL, SucN)
                 for i in tqdm(range(sum(Renum)), desc=str(len(SuRcN.T)), ascii=True):
-                    AP = APcN1d[IAD[i]:IAD[i+1]]
-                    SuCP[i, SucN[i], AP] += 1
-                    SuLP[i, SulN[i], AP] += 1
+                    AP = APcN1d[IAD[i]:IAD[i + 1]]
                     SuGP[i, np.flatnonzero(GC[:, SucN[i]])][:, AP] += 1
                     GP = SuGP[i]
-                    SuAiP[i] = np.copy(CAiP(SuAiP[i], SuTType[i], AP, SuLP[i], SucN[i]))
-                    SuTType[i] = np.copy(CTType(AP, SuTType[i]))
-                    for j in SuNcN[i]:
-                        SuLlcN[i, np.flatnonzero(SuNcN[i] == j)[0]] = LPTType(SuAiP[i], SuTType[i], SuLP[i], j)
+                    SuTType[i] = CTType(AP, SuTType[i])
+                    SuAiP[i] = CAiP(SuAiP[i], SuTTypep[i], SuTType[i], AP, SuLP[i], SucN[i], SuNcN[i])
+                    SuLP[i, SulN[i]] += SuAiP[i, SucN[i]]
+                    if not np.all(SuTType[i] == SuTTypep[i]):
+                        for j in SuNcN[i]:
+                            SuLlcN[i, np.flatnonzero(SuNcN[i] == j)[0]] = LPTType(SuAiP[i], SuTType[i], SuLP[i], j)
+                    else:
+                        if np.any(SuLP[i, SulN[i], AP] == MLP[SulN[i]]):
+                            for j in SuNcN[i, (PIL(ICL, SuNcN[i]) == SulN[i])]:
+                                SuLlcN[i, np.flatnonzero(SuNcN[i] == j)[0]] = LPTType(SuAiP[i], SuTType[i], SuLP[i], j)
+                        for j in np.intersect1d(np.flatnonzero(np.sum(GC[GC[:, SucN[i]]], axis=0)), SuNcN[i]):
+                            SuLlcN[i, np.flatnonzero(SuNcN[i] == j)[0]] = LPTType(SuAiP[i], SuTType[i], SuLP[i], j)
+            else:
+                out = 1
+    if fastsend == 0:
+        delin = np.array([], int)
+        for i in range(len(REGC)):
+            if Allin(GC, REGC[i, :REg[i], :]) == 1:
+                delin = np.append(delin, i)
+        if len(delin) > 0:
+            REGC = np.delete(REGC, delin, axis=0)
+            REg = np.delete(REg, delin)
+        REGC = np.append(REGC, [np.append(GC, np.zeros((s - g, c)), axis=0)], axis=0)
+        REg = np.append(REg, g)
+    fastsend = 0
+    if distinguished == 0:
+        SCbr = np.copy(SC)
+        delind = np.array([], int)
+        for i in range(len(RE)):
+            classnumber = RE[i] // s
+            lecture = PIL(ICL, np.array([classnumber]))[0]
+            if LCN[lecture] == 1:
+                LLC = np.append(LLC, lecture)
+                delind = np.append(delind, i)
+            elif np.sum(SC[:, classnumber]) == 1:
+                LMC = np.append(LMC, lecture)
+                delind = np.append(delind, i)
+        if len(delind) > 0:
+            RE = np.delete(RE, delind, axis=0)
+        RE = np.sort(RE)
+        distinguished = 1
+    newface = 0
+    while newface == 0:
+        classnum = RE[-1] // s
+        lecture = PIL(ICL, np.array([classnum]))[0]
+        student = GS[RE[-1] % s]
+        SC = np.copy(SCbr)
+        SC[student, classnum] = 0
+        SC[student, classnum + 1 - LCN[lecture] * (classnum == FCL[lecture])] = 1
+        RE = np.delete(RE, -1)
+        SC = sortition(SC)
+        if SC in RSC:
+            if len(RE) == 0:
+                dead = 1
+                newface = 1
+        else:
+            RSC = np.append(RSC, [SC], axis=0)
+            out = 0
+            newface = 1
+print("Lectures with less classes: " + str(LLC))
+print("Lectures with much classes: " + str(LMC))

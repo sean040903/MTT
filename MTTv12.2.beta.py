@@ -56,7 +56,6 @@ for i in range(len(datenames)):
 
 
 # 변경 함수
-@profile
 def CAiP(AiP1, ttype4, selp1, LP1, cn7):  # TType을 변경하기 전에 진행을 해야 한다.
     AiP2 = np.copy(AiP1)
     ln7 = PIL(ICL, np.array([cn7]))[0]
